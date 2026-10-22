@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Aerodynamic & Maglev Physics Simulation</title>
+    <!-- Tailwind CSS CDN for modern utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for real-time live graph plotting -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for visual icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom Glowing Visual FX & Animations */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+            border-color: rgba(6, 182, 212, 0.6);
+        }
+
+        .glow-magenta {
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+            border-color: rgba(236, 72, 153, 0.6);
+        }
+
+        .text-glow-cyan {
+            text-shadow: 0 0 8px rgba(6, 182, 212, 0.7);
+        }
+
+        .text-glow-magenta {
+            text-shadow: 0 0 8px rgba(236, 72, 153, 0.7);
+        }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Interactive touch button styling */
+        .btn-touch {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-2 md:p-4 gap-4">
+
+    <!-- HEADER / NAVIGATION TITLE -->
+    <header class="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 md:p-4 flex flex-col sm:flex-row items-center justify-between shadow-2xl backdrop-blur">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-gradient-to-br from-cyan-500 to-magenta-500 rounded-lg text-slate-950 font-black text-xl">
+                <i class="fa-solid fa-gauge-high"></i>
+            </div>
+            <div>
+                <h1 class="font-orbitron text-lg md:text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-fuchsia-500">
+                    AERO-MAGLEV PHYSICS SIMULATOR
+                </h1>
+                <p class="text-xs text-slate-400">Zero-Friction & Anti-Aerodynamic Drag Shield Dynamics</p>
+            </div>
+        </div>
+
+        <!-- Formula Tooltip Modal / Quick Specs -->
+        <div class="mt-2 sm:mt-0 flex gap-2">
+            <button id="togglePhysicsBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-flask"></i> Physics Formulas
+            </button>
+            <button id="resetSimBtn" class="px-3 py-1.5 bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 border border-rose-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-rotate-right"></i> Reset Sim
+            </button>
+        </div>
+    </header>
+
+    <!-- PHYSICS FORMULA POPUP MODAL (HIDDEN BY DEFAULT) -->
+    <div id="physicsModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-cyan-500/50 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button id="closePhysicsBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="font-orbitron text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-square-root-variable"></i> Aerodynamic & Maglev Physics
+            </h3>
+            
+            <div class="space-y-4 text-sm text-slate-300">
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider mb-1 text-slate-400">1. Standard Bicycle Resistance Force</h4>
+                    <p class="font-mono text-cyan-300">F_net = F_thrust - F_drag - F_friction</p>
+                    <p class="mt-1 text-xs text-slate-400">Where Aerodynamic Drag is: <span class="font-mono text-amber-300">F_drag = ½ · ρ · v² · C_d · A</span></p>
+                    <p class="text-xs text-slate-400">And Rolling Friction is: <span class="font-mono text-amber-300">F_friction = C_rr · m · g</span></p>
+                </div>
+
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider mb-1 text-magenta-400">2. Ultra Aero Maglev Bike (Shield Active)</h4>
+                    <p class="font-mono text-fuchsia-300">F_net = F_thrust - 0 - 0 = F_thrust</p>
+                    <p class="mt-1 text-xs text-slate-400">Magnetic Levitation removes <span class="text-fuchsia-400">Rolling Friction</span> entirely (<span class="font-mono">C_rr = 0</span>).</p>
+                    <p class="text-xs text-slate-400">Anti-Aerodynamic Shield redirects turbulent airflow, setting <span class="text-fuchsia-400">Drag Coefficient C_d = 0</span>.</p>
+                </div>
+
+                <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider mb-1 text-teal-400">3. Acceleration & Terminal Velocity</h4>
+                    <p class="font-mono text-teal-300">a = F_net / m</p>
+                    <p class="mt-1 text-xs text-slate-400">Standard bikes hit terminal velocity when <span class="font-mono">F_drag + F_friction = F_thrust</span>. The Aero-Bike experiences infinite linear velocity growth limited only by input pulse time!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+
+        <!-- LEFT PANEL: SIMULATION CANVAS & REAL-TIME DASHBOARD (8 COLS) -->
+        <div class="lg:col-span-8 flex flex-col gap-4">
+            
+            <!-- TRACK SIMULATION CANVAS CONTAINER -->
+            <div class="relative bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col">
+                <!-- Track overlay status badge -->
+                <div class="absolute top-3 left-3 z-10 flex gap-2">
+                    <span id="controlStatusBadge" class="bg-slate-900/90 border border-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> READY (USE ARROW KEYS OR ON-SCREEN BUTTONS)
+                    </span>
+                </div>
+
+                <!-- Canvas element for rendering tracks, vehicles, particles -->
+                <canvas id="simCanvas" class="w-full h-[320px] md:h-[380px] bg-slate-950 block cursor-crosshair"></canvas>
+            </div>
+
+            <!-- LIVE TELEMETRY DASHBOARD -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
+                <!-- Standard Speed -->
+                <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex flex-col justify-between">
+                    <span class="text-xs text-slate-400 uppercase font-bold tracking-wider">Standard Speed</span>
+                    <div class="flex items-baseline gap-1 my-1">
+                        <span id="stdSpeedVal" class="font-orbitron text-2xl md:text-3xl font-black text-slate-200">0.0</span>
+                        <span class="text-xs text-slate-500">km/h</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div id="stdSpeedBar" class="bg-slate-400 h-full w-0 transition-all duration-75"></div>
+                    </div>
+                </div>
+
+                <!-- Aero Maglev Speed -->
+                <div class="bg-slate-900/90 border border-cyan-500/30 p-3 rounded-xl flex flex-col justify-between glow-cyan">
+                    <span class="text-xs text-cyan-400 uppercase font-bold tracking-wider">Maglev Speed</span>
+                    <div class="flex items-baseline gap-1 my-1">
+                        <span id="magSpeedVal" class="font-orbitron text-2xl md:text-3xl font-black text-cyan-300 text-glow-cyan">0.0</span>
+                        <span class="text-xs text-cyan-500">km/h</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div id="magSpeedBar" class="bg-cyan-400 h-full w-0 transition-all duration-75"></div>
+                    </div>
+                </div>
+
+                <!-- Air Resistance Force -->
+                <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex flex-col justify-between">
+                    <span class="text-xs text-amber-400/90 uppercase font-bold tracking-wider">Std Drag Force</span>
+                    <div class="flex items-baseline gap-1 my-1">
+                        <span id="stdDragVal" class="font-orbitron text-2xl md:text-3xl font-black text-amber-300">0.0</span>
+                        <span class="text-xs text-amber-500">N</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500">Maglev Drag = 0.0 N</span>
+                </div>
+
+                <!-- Distance Delta -->
+                <div class="bg-slate-900/90 border border-magenta-500/30 p-3 rounded-xl flex flex-col justify-between glow-magenta">
+                    <span class="text-xs text-fuchsia-400 uppercase font-bold tracking-wider">Lead Distance</span>
+                    <div class="flex items-baseline gap-1 my-1">
+                        <span id="leadDistVal" class="font-orbitron text-2xl md:text-3xl font-black text-fuchsia-300 text-glow-magenta">+0</span>
+                        <span class="text-xs text-fuchsia-500">m</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500">Maglev Advantage</span>
+                </div>
+            </div>
+
+            <!-- CHARTS SECTION: REAL-TIME PLOTTING -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="font-orbitron text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-cyan-400"></i> LIVE KINEMATICS GRAPH
+                    </h2>
+                    <div class="flex gap-2">
+                        <button id="chartModeSpeedBtn" class="px-2.5 py-1 text-xs rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold">Speed vs Time</button>
+                        <button id="chartModeDistBtn" class="px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-400 border border-slate-700 font-semibold">Distance vs Time</button>
+                    </div>
+                </div>
+                <div class="w-full h-48 md:h-56 relative">
+                    <canvas id="realtimeChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL: CONTROLS & ENVIRONMENT SLIDERS (4 COLS) -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+            
+            <!-- INPUT DRIVE CONTROLS -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+                <h2 class="font-orbitron text-sm font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-fuchsia-400"></i> VEHICLE DRIVE CONTROLS
+                </h2>
+
+                <p class="text-xs text-slate-400">Press & hold keyboard <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-cyan-300 font-mono">UP</kbd> or <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-cyan-300 font-mono">RIGHT</kbd> arrow keys, or use touch buttons below:</p>
+
+                <!-- Touch Control Buttons -->
+                <div class="grid grid-cols-2 gap-2 mt-1">
+                    <button id="accelBtn" class="btn-touch py-4 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 active:scale-95 text-slate-950 font-black font-orbitron text-sm rounded-xl shadow-lg flex flex-col items-center justify-center gap-1 transition">
+                        <i class="fa-solid fa-bolt text-lg"></i>
+                        <span>PEDAL / THRUST</span>
+                    </button>
+                    <button id="brakeBtn" class="btn-touch py-4 bg-slate-800 hover:bg-slate-700 active:scale-95 text-rose-300 border border-rose-500/30 font-black font-orbitron text-sm rounded-xl shadow-lg flex flex-col items-center justify-center gap-1 transition">
+                        <i class="fa-solid fa-hand-stop text-lg"></i>
+                        <span>BRAKE</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PHYSICS ENVIRONMENT VARIABLES (SLIDERS) -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-4">
+                <h2 class="font-orbitron text-sm font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-amber-400"></i> PHYSICS PARAMETERS
+                </h2>
+
+                <!-- Slider 1: Rider Mass -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <label for="riderMass" class="text-slate-300 font-medium">Total Vehicle Mass (kg)</label>
+                        <span id="riderMassVal" class="font-mono text-cyan-400 font-bold">70 kg</span>
+                    </div>
+                    <input type="range" id="riderMass" min="40" max="120" value="70" step="1" class="w-full accent-cyan-400 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500">Affects force needed for acceleration (F = m · a).</p>
+                </div>
+
+                <!-- Slider 2: Thrust Force -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <label for="thrustForce" class="text-slate-300 font-medium">Drive Force (Newtons)</label>
+                        <span id="thrustForceVal" class="font-mono text-fuchsia-400 font-bold">300 N</span>
+                    </div>
+                    <input type="range" id="thrustForce" min="100" max="800" value="300" step="10" class="w-full accent-fuchsia-400 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500">Forward thrust generated when pedaling/accelerating.</p>
+                </div>
+
+                <!-- Slider 3: Standard Bike Drag Coeff -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <label for="dragCoeff" class="text-slate-300 font-medium">Standard Aerodynamic Drag (Cd)</label>
+                        <span id="dragCoeffVal" class="font-mono text-amber-400 font-bold">0.60</span>
+                    </div>
+                    <input type="range" id="dragCoeff" min="0.10" max="1.20" value="0.60" step="0.05" class="w-full accent-amber-400 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                    <p class="text-[10px] text-slate-500">Aero Drag Coefficient for standard bike. Maglev Bike remains 0.00.</p>
+                </div>
+
+                <!-- Toggle Aero Shield Option -->
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-200 block">Anti-Aero Force Shield</span>
+                        <span class="text-[10px] text-slate-500 block">Cancels air drag resistance on Maglev</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="aeroShieldToggle" checked class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- COMPARISON INFOGRAPHIC CARDS -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+                <h3 class="font-orbitron text-xs font-bold text-slate-300 uppercase tracking-wider">Engineering Comparison</h3>
+                
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 flex items-center gap-3">
+                    <div class="text-slate-400 text-xl w-8 text-center"><i class="fa-solid fa-bicycle"></i></div>
+                    <div class="text-xs">
+                        <span class="font-bold text-slate-300 block">Standard Road Bicycle</span>
+                        <span class="text-slate-500">Tire friction ($C_{rr}=0.008$) & turbulent drag cap top speed.</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-cyan-500/30 flex items-center gap-3">
+                    <div class="text-cyan-400 text-xl w-8 text-center text-glow-cyan"><i class="fa-solid fa-atom"></i></div>
+                    <div class="text-xs">
+                        <span class="font-bold text-cyan-300 block">Aero-Maglev Prototype</span>
+                        <span class="text-slate-400">Magnetic levitation + plasma air deflection shield ($C_d=0$).</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT SIMULATION & GRAPH LOGIC -->
+    <script>
+        // --- 1. SIMULATION STATE & VARIABLES ---
+        const AIR_DENSITY = 1.225; // kg/m^3
+        const GRAVITY = 9.81;      // m/s^2
+        const STD_ROLLING_COEFF = 0.008; // Rolling resistance for standard bike rubber tires
+        const FRONT_AREA = 0.55;    // Frontal surface area in m^2
+
+        // Editable parameters via UI
+        let params = {
+            mass: 70,           // kg
+            thrust: 300,        // N
+            dragCoeff: 0.60,    // Cd
+            shieldActive: true  // Anti-Aero shield enabled
+        };
+
+        // Live physics state for both vehicles
+        let state = {
+            std: { pos: 0, vel: 0, accel: 0, drag: 0, friction: 0 },
+            mag: { pos: 0, vel: 0, accel: 0, drag: 0, friction: 0 },
+            isAccelerating: false,
+            isBraking: false,
+            time: 0
+        };
+
+        // Graph mode ('speed' or 'distance')
+        let chartMode = 'speed';
+
+        // --- 2. CANVAS SETUP & PARALLAX GRAPHICS ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Particle system for aerodynamic air drag visualization
+        let airParticles = [];
+        const NUM_PARTICLES = 70;
+
+        function initParticles() {
+            airParticles = [];
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                airParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: 2 + Math.random() * 4,
+                    size: 1 + Math.random() * 2,
+                    alpha: 0.2 + Math.random() * 0.5
+                });
+            }
+        }
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            initParticles();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // --- 3. CHART.JS INITIALIZATION ---
+        const chartCtx = document.getElementById('realtimeChart').getContext('2d');
+        const chartData = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Standard Bike',
+                    data: [],
+                    borderColor: '#94a3b8',
+                    borderWidth: 2,
+                    borderDash: [4, 4],
+                    pointRadius: 0,
+                    tension: 0.3
+                },
+                {
+                    label: 'Aero-Maglev Bike',
+                    data: [],
+                    borderColor: '#06b6d4',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    tension: 0.3
+                }
+            ]
+        };
+
+        const realtimeChart = new Chart(chartCtx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                        ticks: { color: '#64748b', font: { family: 'Rajdhani' }, maxTicksLimit: 8 }
+                    },
+                    y: {
+                        grid: { color: 'rgba(51, 65, 85, 0.3)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Rajdhani' } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#cbd5e1', font: { family: 'Orbitron', size: 10 } }
+                    }
+                }
+            }
+        });
+
+        // --- 4. PHYSICS UPDATE ENGINE LOOP ---
+        let lastTimestamp = performance.now();
+
+        function updatePhysics(dt) {
+            if (dt > 0.1) dt = 0.1; // Cap step size to prevent physics explosion
+
+            // Applied user forces
+            let currentThrust = state.isAccelerating ? params.thrust : 0;
+            let brakeForce = state.isBraking ? 400 : 0;
+
+            // --- STANDARD BICYCLE PHYSICS ---
+            // F_drag = 0.5 * rho * v^2 * Cd * A
+            state.std.drag = 0.5 * AIR_DENSITY * Math.pow(state.std.vel, 2) * params.dragCoeff * FRONT_AREA;
+            state.std.friction = STD_ROLLING_COEFF * params.mass * GRAVITY;
+
+            let stdNetForce = currentThrust - state.std.drag - state.std.friction - brakeForce;
+            
+            // If stopped and thrust is zero, prevent negative friction moving backwards
+            if (state.std.vel <= 0 && currentThrust <= 0) {
+                stdNetForce = 0;
+                state.std.vel = 0;
+            }
+
+            state.std.accel = stdNetForce / params.mass;
+            state.std.vel += state.std.accel * dt;
+            if (state.std.vel < 0) state.std.vel = 0;
+            state.std.pos += state.std.vel * dt;
+
+
+            // --- AERO MAGLEV BICYCLE PHYSICS ---
+            // Zero rolling friction due to magnetic levitation!
+            state.mag.friction = 0;
+
+            // Zero drag if shield is active, otherwise same standard drag
+            let magCd = params.shieldActive ? 0.0 : params.dragCoeff;
+            state.mag.drag = 0.5 * AIR_DENSITY * Math.pow(state.mag.vel, 2) * magCd * FRONT_AREA;
+
+            let magNetForce = currentThrust - state.mag.drag - state.mag.friction - brakeForce;
+
+            if (state.mag.vel <= 0 && currentThrust <= 0) {
+                magNetForce = 0;
+                state.mag.vel = 0;
+            }
+
+            state.mag.accel = magNetForce / params.mass;
+            state.mag.vel += state.mag.accel * dt;
+            if (state.mag.vel < 0) state.mag.vel = 0;
+            state.mag.pos += state.mag.vel * dt;
+
+            state.time += dt;
+
+            // Update Graph Buffer
+            if (state.isAccelerating || state.std.vel > 0 || state.mag.vel > 0) {
+                const timeLabel = state.time.toFixed(1) + 's';
+                const valStd = chartMode === 'speed' ? (state.std.vel * 3.6) : state.std.pos;
+                const valMag = chartMode === 'speed' ? (state.mag.vel * 3.6) : state.mag.pos;
+
+                chartData.labels.push(timeLabel);
+                chartData.datasets[0].data.push(valStd);
+                chartData.datasets[1].data.push(valMag);
+
+                // Maintain clean max data window
+                if (chartData.labels.length > 50) {
+                    chartData.labels.shift();
+                    chartData.datasets[0].data.shift();
+                    chartData.datasets[1].data.shift();
+                }
+                realtimeChart.update('none');
+            }
+        }
+
+        // --- 5. RENDER GRAPHICS & CANVAS DRAWING ---
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const trackH = canvas.height / 2;
+
+            // Draw Parallax Moving Track Background Lines
+            const lineOffset = (state.mag.pos * 15) % 40;
+
+            // Top Lane (Standard Bike)
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, trackH);
+            
+            // Bottom Lane (Maglev Bike)
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, trackH, canvas.width, trackH);
+
+            // Lane Divider
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, trackH);
+            ctx.lineTo(canvas.width, trackH);
+            ctx.stroke();
+
+            // Track Grid / Speed Lines
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+            ctx.lineWidth = 1;
+            for (let x = -lineOffset; x < canvas.width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            // --- DRAW AIR DRAG PARTICLES IN TOP TRACK ---
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.6)';
+            const stdSpeedKm = state.std.vel * 3.6;
+            airParticles.forEach(p => {
+                p.x -= (p.speed + stdSpeedKm * 0.1);
+                if (p.x < 0) p.x = canvas.width;
+
+                // Render turbulent drag air dots around standard bike
+                if (p.y < trackH) {
+                    ctx.fillStyle = `rgba(245, 158, 11, ${p.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+
+            // --- CALCULATE RELATIVE VEHICLE POSITIONS ---
+            // Center the camera slightly around the vehicles
+            let baseScreenX = 80;
+            let leadDistance = state.mag.pos - state.std.pos;
+            
+            // Scale meters to pixels
+            let metersToPx = 3.5; 
+            let stdX = baseScreenX;
+            let magX = baseScreenX + (leadDistance * metersToPx);
+
+            // Clamp positions inside frame smoothly
+            if (magX > canvas.width - 100) {
+                magX = canvas.width - 100;
+                stdX = magX - (leadDistance * metersToPx);
+            }
+
+            // --- DRAW STANDARD BICYCLE (TRACK 1 - TOP) ---
+            const stdY = trackH * 0.55;
+            drawStandardBike(ctx, stdX, stdY);
+
+            // --- DRAW AERO MAGLEV BIKE (TRACK 2 - BOTTOM) ---
+            const magY = trackH + (trackH * 0.55);
+            drawMaglevBike(ctx, magX, magY);
+        }
+
+        // Helper: Draw Standard Bicycle Vector
+        function drawStandardBike(ctx, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Wheels
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(-22, 10, 14, 0, Math.PI * 2); // Rear
+            ctx.arc(22, 10, 14, 0, Math.PI * 2);  // Front
+            ctx.stroke();
+
+            // Frame
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-22, 10);
+            ctx.lineTo(-6, -6);
+            ctx.lineTo(12, 10);
+            ctx.lineTo(-22, 10);
+            ctx.moveTo(-6, -6);
+            ctx.lineTo(18, -6); // Handlebars
+            ctx.lineTo(22, 10);
+            ctx.stroke();
+
+            // Rider Helmet/Body
+            ctx.fillStyle = '#64748b';
+            ctx.beginPath();
+            ctx.arc(-8, -16, 7, 0, Math.PI * 2); // Head
+            ctx.fill();
+
+            // Air Drag Turbulence visual effects behind standard bike
+            if (state.std.vel > 3) {
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(25, -5);
+                ctx.quadraticCurveTo(35, -15, 45, -2);
+                ctx.moveTo(25, 5);
+                ctx.quadraticCurveTo(38, 15, 50, 8);
+                ctx.stroke();
+            }
+
+            // Label
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 10px Orbitron';
+            ctx.fillText('STANDARD BIKE', -30, -32);
+
+            ctx.restore();
+        }
+
+        // Helper: Draw Aero Maglev Futuristic Bike Vector
+        function drawMaglevBike(ctx, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Maglev Beam Glow (Floating effect under bike)
+            ctx.fillStyle = 'rgba(6, 182, 212, 0.25)';
+            ctx.beginPath();
+            ctx.ellipse(0, 22, 40, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Magnetic Levitation Pulse Rings
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(-20, 22, 12, 3, 0, 0, Math.PI * 2);
+            ctx.ellipse(20, 22, 12, 3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Sleek Metallic Cyber Body
+            ctx.fillStyle = '#0891b2';
+            ctx.beginPath();
+            ctx.moveTo(-32, 5);
+            ctx.lineTo(-15, -12);
+            ctx.lineTo(25, -10);
+            ctx.lineTo(35, 5);
+            ctx.lineTo(15, 12);
+            ctx.lineTo(-20, 12);
+            ctx.closePath();
+            ctx.fill();
+
+            // Glowing Magenta Core Engine
+            ctx.fillStyle = '#ec4899';
+            ctx.shadowColor = '#ec4899';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(-2, 0, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0; // Reset shadow
+
+            // Futuristic Rider Aerodynamic Silhouette
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.arc(-6, -18, 6, 0, Math.PI * 2); // Head lower tucked in aero position
+            ctx.fill();
+
+            // ANTI-AERODYNAMIC FORCE SHIELD BUBBLE (If active)
+            if (params.shieldActive) {
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.7)';
+                ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(2, -2, 48, 26, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Airflow Vector Lines gliding smoothly over shield
+                if (state.mag.vel > 2) {
+                    ctx.strokeStyle = 'rgba(165, 243, 252, 0.8)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-50, -10);
+                    ctx.quadraticCurveTo(0, -36, 52, -10);
+                    ctx.stroke();
+                }
+            }
+
+            // Label
+            ctx.fillStyle = '#22d3ee';
+            ctx.font = 'bold 10px Orbitron';
+            ctx.fillText('AERO MAGLEV', -28, -35);
+
+            ctx.restore();
+        }
+
+        // --- 6. TELEMETRY UI UPDATER ---
+        function updateDashboardUI() {
+            // Speed outputs in km/h
+            const stdKm = (state.std.vel * 3.6).toFixed(1);
+            const magKm = (state.mag.vel * 3.6).toFixed(1);
+
+            document.getElementById('stdSpeedVal').innerText = stdKm;
+            document.getElementById('magSpeedVal').innerText = magKm;
+
+            // Speed bar widths
+            document.getElementById('stdSpeedBar').style.width = Math.min(100, (stdKm / 120) * 100) + '%';
+            document.getElementById('magSpeedBar').style.width = Math.min(100, (magKm / 120) * 100) + '%';
+
+            // Drag force output
+            document.getElementById('stdDragVal').innerText = state.std.drag.toFixed(1);
+
+            // Lead Distance output
+            const leadMeters = Math.max(0, state.mag.pos - state.std.pos).toFixed(0);
+            document.getElementById('leadDistVal').innerText = '+' + leadMeters;
+        }
+
+        // --- 7. MAIN GAME SIMULATION LOOP ---
+        function gameLoop(time) {
+            const dt = (time - lastTimestamp) / 1000;
+            lastTimestamp = time;
+
+            updatePhysics(dt);
+            renderCanvas();
+            updateDashboardUI();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- 8. USER CONTROLS & EVENT LISTENERS ---
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'w' || e.key === 'W') {
+                state.isAccelerating = true;
+                updateControlBadge(true, 'THRUSTING!');
+            }
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                state.isBraking = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'w' || e.key === 'W') {
+                state.isAccelerating = false;
+                updateControlBadge(false, 'READY (USE ARROW KEYS OR BUTTONS)');
+            }
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                state.isBraking = false;
+            }
+        });
+
+        // Touch / On-screen Buttons
+        const accelBtn = document.getElementById('accelBtn');
+        const brakeBtn = document.getElementById('brakeBtn');
+
+        const startAccel = (e) => { e.preventDefault(); state.isAccelerating = true; updateControlBadge(true, 'THRUSTING!'); };
+        const stopAccel = (e) => { e.preventDefault(); state.isAccelerating = false; updateControlBadge(false, 'READY'); };
+
+        accelBtn.addEventListener('mousedown', startAccel);
+        accelBtn.addEventListener('mouseup', stopAccel);
+        accelBtn.addEventListener('touchstart', startAccel);
+        accelBtn.addEventListener('touchend', stopAccel);
+
+        const startBrake = (e) => { e.preventDefault(); state.isBraking = true; };
+        const stopBrake = (e) => { e.preventDefault(); state.isBraking = false; };
+
+        brakeBtn.addEventListener('mousedown', startBrake);
+        brakeBtn.addEventListener('mouseup', stopBrake);
+        brakeBtn.addEventListener('touchstart', startBrake);
+        brakeBtn.addEventListener('touchend', stopBrake);
+
+        function updateControlBadge(active, text) {
+            const badge = document.getElementById('controlStatusBadge');
+            if (active) {
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> <span class="text-cyan-300 font-bold">${text}</span>`;
+            } else {
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ${text}`;
+            }
+        }
+
+        // Slider listeners
+        document.getElementById('riderMass').addEventListener('input', (e) => {
+            params.mass = parseFloat(e.target.value);
+            document.getElementById('riderMassVal').innerText = params.mass + ' kg';
+        });
+
+        document.getElementById('thrustForce').addEventListener('input', (e) => {
+            params.thrust = parseFloat(e.target.value);
+            document.getElementById('thrustForceVal').innerText = params.thrust + ' N';
+        });
+
+        document.getElementById('dragCoeff').addEventListener('input', (e) => {
+            params.dragCoeff = parseFloat(e.target.value);
+            document.getElementById('dragCoeffVal').innerText = params.dragCoeff.toFixed(2);
+        });
+
+        document.getElementById('aeroShieldToggle').addEventListener('change', (e) => {
+            params.shieldActive = e.target.checked;
+        });
+
+        // Reset Sim Button
+        document.getElementById('resetSimBtn').addEventListener('click', () => {
+            state.std = { pos: 0, vel: 0, accel: 0, drag: 0, friction: 0 };
+            state.mag = { pos: 0, vel: 0, accel: 0, drag: 0, friction: 0 };
+            state.time = 0;
+            chartData.labels = [];
+            chartData.datasets[0].data = [];
+            chartData.datasets[1].data = [];
+            realtimeChart.update();
+        });
+
+        // Graph Mode Toggle Buttons
+        const speedBtn = document.getElementById('chartModeSpeedBtn');
+        const distBtn = document.getElementById('chartModeDistBtn');
+
+        speedBtn.addEventListener('click', () => {
+            chartMode = 'speed';
+            speedBtn.className = "px-2.5 py-1 text-xs rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold";
+            distBtn.className = "px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-400 border border-slate-700 font-semibold";
+            realtimeChart.options.scales.y.title = { display: true, text: 'Speed (km/h)', color: '#94a3b8' };
+            realtimeChart.update();
+        });
+
+        distBtn.addEventListener('click', () => {
+            chartMode = 'distance';
+            distBtn.className = "px-2.5 py-1 text-xs rounded bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 font-semibold";
+            speedBtn.className = "px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-400 border border-slate-700 font-semibold";
+            realtimeChart.options.scales.y.title = { display: true, text: 'Distance (m)', color: '#94a3b8' };
+            realtimeChart.update();
+        });
+
+        // Formula Modal Toggle
+        const physicsModal = document.getElementById('physicsModal');
+        document.getElementById('togglePhysicsBtn').addEventListener('click', () => {
+            physicsModal.classList.remove('hidden');
+        });
+        document.getElementById('closePhysicsBtn').addEventListener('click', () => {
+            physicsModal.classList.add('hidden');
+        });
+
+        // Start Loop
+        requestAnimationFrame(gameLoop);
+
+    </script>
+</body>
+</html>
